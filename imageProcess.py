@@ -8,11 +8,11 @@ WHITE = 255
 
 
 def convert_to_bw(name: str, threshold=90):
+	''' 
+	특정 값을 기준으로 어두운 픽셀을 검정색으로, 
+	밝은 픽셀은 흰색으로 변환한 binary image를 반환한다. 
 	'''
-	특정 값을 기준으로 어두운 픽셀을 검정색으로, 밝은 픽셀은 흰색으로 변환한
-	binary image를 반환한다.
-	'''
-	img: Image.Image = Image.open(name)
+	img = Image.open(name)
 	grey = img.convert('L')
 	bw = grey.point(lambda x: WHITE if x > threshold else BLACK)
 	return bw
@@ -34,3 +34,4 @@ if __name__ == "__main__":
 	name = "images/crack.jpg"
 	ret = convert_to_bw(name)
 	a = count_pixels(ret)
+	print(a[0] / a[1] * 100)
