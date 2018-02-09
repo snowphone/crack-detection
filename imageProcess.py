@@ -1,4 +1,5 @@
 from itertools import chain
+from sys import argv
 
 import numpy as np
 from PIL import Image
@@ -7,7 +8,16 @@ BLACK = 0
 WHITE = 255
 
 
-def convert_to_bw(name: str, threshold=90):
+def main():
+	for name in argv[1:]:
+		img = convert_to_bw(name)
+		basename = name[:name.rfind('.')]
+		img.save(basename + "_bw.jpg")
+	print("done")
+
+
+
+def convert_to_bw(name: str, threshold=100):
 	''' 
 	특정 값을 기준으로 어두운 픽셀을 검정색으로, 
 	밝은 픽셀은 흰색으로 변환한 binary image를 반환한다. 
@@ -31,7 +41,4 @@ def count_pixels(img: Image.Image):
 
 
 if __name__ == "__main__":
-	name = "images/crack.jpg"
-	ret = convert_to_bw(name)
-	a = count_pixels(ret)
-	print(a[0] / a[1] * 100)
+	main()
