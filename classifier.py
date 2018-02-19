@@ -9,7 +9,7 @@ import labeler
 import os
 
 grade = ("시작", "초기", "중기", "말기", "최종")
-path = "./images/"
+path = "./images/color/"
 imgName = [name for name in os.listdir(path) if name.find("jpg") != -1 or name.find("JPG") != -1]
 images = [imread(path + name) for name in imgName]
 labels = labeler.label_onehot(imgName, grade)	
