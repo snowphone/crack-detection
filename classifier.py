@@ -8,10 +8,11 @@ from scipy.misc import imread
 import labeler
 import os
 
+grade = ("시작", "초기", "중기", "말기", "최종")
 path = "./images/"
 imgName = [name for name in os.listdir(path) if name.find("jpg") != -1 or name.find("JPG") != -1]
 images = [imread(path + name) for name in imgName]
-labels = labeler.label_onehot(imgName)	
+labels = labeler.label_onehot(imgName, grade)	
 
 #########
 # 신경망 모델 구성
@@ -37,7 +38,7 @@ L3 = tf.contrib.layers.flatten(L2)
 L3 = tf.layers.dense(L3, 256, activation=tf.nn.relu)
 L3 = tf.layers.dropout(L3, 0.5, is_training)
 
-model = tf.layers.dense(L3, 5, activation=None)
+model = tf.layers.dense(L3, len(grade), activation=None)
 
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=Y))
 optimizer = tf.train.AdamOptimizer(0.001).minimize(cost)
