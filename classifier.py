@@ -50,7 +50,7 @@ init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
 
-batch_size = 10
+batch_size = 100 if len(images) > 100 else 10
 total_batch = int(len(images)/batch_size)
 
 for epoch in range(15):
