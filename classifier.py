@@ -1,31 +1,42 @@
-# 신경망 구성을 손쉽게 해 주는 유틸리티 모음인 tensorflow.layers 를 사용해봅니다.
-# 01 - CNN.py 를 재구성한 것이니, 소스를 한 번 비교해보세요.
-# 이처럼 TensorFlow 에는 간단하게 사용할 수 있는 다양한 함수와 유틸리티들이 매우 많이 마련되어 있습니다.
-# 다만, 처음에는 기본적인 개념에 익숙히지는 것이 좋으므로 이후에도 가급적 기본 함수들을 이용하도록 하겠습니다.
+'''
+epoch: 데이터 세트를 한번 순회함. 즉, 1 epoch는 1번 데이터 세트를 순회함을 의미.
+batch_size: 가중치 갱신을 하기 까지 입력받을 데이터 수
+iteration: epoch / batch_size
+
+tf.nn.softmax_cross_entropy_with_logits는 deprecated이지만, _v2에 비해 성능이 좋으므로
+그대로 유지한다.
+
+'''
 import tensorflow as tf
 import numpy as np
 from scipy.misc import imread
 import labeler
 import os
 
+EPOCH = 20
+LEARNING_RATE = 0.001
+
+def load(folderPath):
+    x_imgName = [name for name in os.listdir(folderPath) if name.find("jpg") != -1 or name.find("JPG") != -1]
+    x_images = [imread(folderPath + name) for name in x_imgName]
+    y_labels = labeler.label_onehot(x_imgName, grade)
+    return x_images, y_labels
+
+
 grade = ("시작", "초기", "중기", "말기", "최종")
-path = "./images/color/"
-imgName = [name for name in os.listdir(path) if name.find("jpg") != -1 or name.find("JPG") != -1]
-images = [imread(path + name) for name in imgName]
-labels = labeler.label_onehot(imgName, grade)	
+path = "./images/"
+x_images, y_labels = load(path + "train/")
+test_images, test_labels = load(path + "test/")
 
 #########
 # 신경망 모델 구성
 ######
 # 250 * 250 pixel, rgb채널의 이미지를 가지는 배열
 X = tf.placeholder(tf.float32, [None, 250, 250, 3])
+#5개의 등급으로 구분되는 one-hot-vector array
 Y = tf.placeholder(tf.float32, [None, 5])
 is_training = tf.placeholder(tf.bool)
 
-# 기본적으로 inputs, outputs size, kernel_size 만 넣어주면
-# 활성화 함수 적용은 물론, 컨볼루션 신경망을 만들기 위한 나머지 수치들은 알아서 계산해줍니다.
-# 특히 Weights 를 계산하는데 xavier_initializer 를 쓰고 있는 등,
-# 크게 신경쓰지 않아도 일반적으로 효율적인 신경망을 만들어줍니다.
 L1 = tf.layers.conv2d(X, 32, [3, 3], activation=tf.nn.relu)
 L1 = tf.layers.max_pooling2d(L1, [2, 2], [2, 2])
 L1 = tf.layers.dropout(L1, 0.7, is_training)
@@ -41,39 +52,34 @@ L3 = tf.layers.dropout(L3, 0.5, is_training)
 model = tf.layers.dense(L3, len(grade), activation=None)
 
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=Y))
-optimizer = tf.train.AdamOptimizer(0.001).minimize(cost)
+optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(cost)
 
 #########
 # 신경망 모델 학습
 ######
 init = tf.global_variables_initializer()
-sess = tf.Session()
-sess.run(init)
+with tf.Session() as sess:
+    sess.run(init)
 
-batch_size = 100 if len(images) > 100 else 10
-total_batch = int(len(images)/batch_size)
 
-for epoch in range(15):
-    total_cost = 0
+    for epoch in range(EPOCH):
+        _, total_cost = sess.run([optimizer, cost],
+                                feed_dict={X: x_images,
+                                    Y: y_labels,
+                                    is_training: True})
 
-    for i in range(total_batch):
-        _, cost_val = sess.run([optimizer, cost],
-                               feed_dict={X: images,
-                                          Y: labels,
-                                          is_training: True})
-        total_cost += cost_val
+        print('Epoch:', '%04d' % (epoch + 1),
+              'Avg. cost =', '{:.4f}'.format(total_cost / len(x_images)))
 
-    print('Epoch:', '%04d' % (epoch + 1),
-          'Avg. cost =', '{:.4f}'.format(total_cost / total_batch))
+    print('최적화 완료!')
+    print("학습 데이터: {}\nepoch: {}".format(len(x_images), EPOCH))
 
-print('최적화 완료!')
-
-#########
-# 결과 확인
-######
-is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
-accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
-print('정확도:', sess.run(accuracy,
-                        feed_dict={X: images,
-                                   Y: labels,
-                                   is_training: False}))
+    #########
+    # 결과 확인
+    ######
+    is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
+    accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
+    print('정확도:', sess.run(accuracy,
+                            feed_dict={X: test_images,
+                                       Y: test_labels,
+                                       is_training: False}))
