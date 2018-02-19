@@ -10,7 +10,7 @@ def label_onehot(nameList):
 	ret = []
 	for name in nameList:
 		onehot = [0 for _ in range(len(classifier))]
-		idx = classifier.index(finder.search(name))
+		idx = classifier.index(finder.search(name).group())
 		onehot[idx] = 1
 		ret.append(onehot)
 	return ret
