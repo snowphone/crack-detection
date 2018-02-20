@@ -7,25 +7,16 @@ tf.nn.softmax_cross_entropy_with_logits는 deprecated이지만, _v2에 비해 �
 그대로 유지한다.
 
 '''
-import os
 
 import numpy as np
 import tensorflow as tf
-from scipy.misc import imread
 
-import labeler
+from misc import label, load, grade
 
 EPOCH = 20
 LEARNING_RATE = 0.001
 
-def load(folderPath):
-    x_imgName = [name for name in os.listdir(folderPath) if name.find("jpg") != -1 or name.find("JPG") != -1]
-    x_images = [imread(folderPath + name) for name in x_imgName]
-    y_labels = labeler.label_onehot(x_imgName, grade)
-    return x_images, y_labels
 
-
-grade = ("시작", "초기", "중기", "말기", "최종")
 path = "./images/"
 x_images, y_labels = load(path + "train/")
 test_images, test_labels = load(path + "test/")
@@ -35,7 +26,7 @@ test_images, test_labels = load(path + "test/")
 ######
 # 250 * 250 pixel, rgb채널의 이미지를 가지는 배열
 X = tf.placeholder(tf.float32, [None, 250, 250, 3])
-#5개의 등급으로 구분되는 one-hot-vector array
+# 5개의 등급으로 구분되는 one-hot-vector array
 Y = tf.placeholder(tf.float32, [None, 5])
 is_training = tf.placeholder(tf.bool)
 
@@ -53,7 +44,8 @@ L3 = tf.layers.dropout(L3, 0.5, is_training)
 
 model = tf.layers.dense(L3, len(grade), activation=None)
 
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=Y))
+cost = tf.reduce_mean(
+    tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=Y))
 optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(cost)
 
 #########
@@ -63,12 +55,11 @@ init = tf.global_variables_initializer()
 with tf.Session() as sess:
     sess.run(init)
 
-
     for epoch in range(EPOCH):
         _, total_cost = sess.run([optimizer, cost],
-                                feed_dict={X: x_images,
-                                    Y: y_labels,
-                                    is_training: True})
+                                 feed_dict={X: x_images,
+                                            Y: y_labels,
+                                            is_training: True})
 
         print('Epoch:', '%04d' % (epoch + 1),
               'Avg. cost =', '{:.4f}'.format(total_cost / len(x_images)))
@@ -82,6 +73,6 @@ with tf.Session() as sess:
     is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
     accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
     print('정확도:', sess.run(accuracy,
-                            feed_dict={X: test_images,
-                                       Y: test_labels,
-                                       is_training: False}))
+                           feed_dict={X: test_images,
+                                      Y: test_labels,
+                                      is_training: False}))
