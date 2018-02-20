@@ -7,11 +7,13 @@ tf.nn.softmax_cross_entropy_with_logits는 deprecated이지만, _v2에 비해 �
 그대로 유지한다.
 
 '''
-import tensorflow as tf
-import numpy as np
-from scipy.misc import imread
-import labeler
 import os
+
+import numpy as np
+import tensorflow as tf
+from scipy.misc import imread
+
+import labeler
 
 EPOCH = 20
 LEARNING_RATE = 0.001
