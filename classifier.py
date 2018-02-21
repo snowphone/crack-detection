@@ -94,7 +94,7 @@ if __name__ == "__main__":
 	# 250 * 250 pixel, rgb채널의 이미지를 가지는 배열
 	X = tf.placeholder(tf.float32, [None, 250, 250, 3])
 	# 5개의 등급으로 구분되는 one-hot-vector array
-	Y = tf.placeholder(tf.float32, [None, 5])
+	Y = tf.placeholder(tf.float32, [None, len(grade)])
 	is_training = tf.placeholder(tf.bool)
 
 	L1 = CNN_layer(X, 32)
