@@ -12,7 +12,7 @@ from time import time
 import numpy as np
 import tensorflow as tf
 
-from misc import label, load, grade
+from misc import label, load, grade, load_file_name 
 
 EPOCH = 15
 LEARNING_RATE = 0.001
@@ -52,6 +52,28 @@ optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(cost)
 #########
 # 신경망 모델 학습
 ######
+
+def show_prediction():
+	'''테스트 데이터 셋에 대해 예측답 및 실제 값을 보여줌.'''
+	file_names = load_file_name(path + "test/")
+	model_idxes = sess.run(tf.argmax(model,1), feed_dict={X:test_images, is_training:False})
+	answer_idxes = sess.run(tf.argmax(Y,1), feed_dict={Y:test_labels}) 
+	print("이미지\t예측답\t실제답\t일치여부")
+	print(*[(name, grade[predict], grade[target], predict == target) 
+		for name, predict, target 
+		in zip(file_names, model_idxes, answer_idxes)], sep='\n')
+	return
+
+def show_accuracy():
+	is_correct = tf.equal(tf.argmax(model,1), tf.argmax(Y,1))
+	accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
+	print("정확도:", sess.run(accuracy,
+							feed_dict={X: test_images,
+									Y: test_labels,
+									is_training: False}))
+	return
+
+
 init = tf.global_variables_initializer()
 with tf.Session() as sess:
 	begin = time()
@@ -62,6 +84,7 @@ with tf.Session() as sess:
 								 feed_dict={X: x_images,
 											Y: y_labels,
 											is_training: True})
+		show_prediction()
 
 		print('Epoch:', '%04d' % (epoch + 1),
 			  'Avg. cost =', '{:.4f}'.format(total_cost / len(x_images)))
@@ -72,18 +95,7 @@ with tf.Session() as sess:
 	#########
 	# 결과 확인
 	######
+	show_prediction()
+	show_accuracy()
 
-	#테스트 데이터 셋에 대해 예측답 및 실제 값을 보여줌.
-	model_idxes = sess.run(tf.argmax(model,1), feed_dict={X:test_images, is_training:False})
-	answer_idxes = sess.run(tf.argmax(Y,1), feed_dict={Y:test_labels}) 
-	print("예측답\t실제답")
-	print(*[(grade[predict], grade[target]) for predict,target in zip(model_idxes, answer_idxes)], sep='\n')
-
-
-	is_correct = tf.equal(tf.argmax(model,1), tf.argmax(Y,1))
-	accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
-	print("정확도:", sess.run(accuracy,
-							feed_dict={X: test_images,
-									Y: test_labels,
-									is_training: False}))
 	print("소요시간: {:.1f}초".format(time() - begin))
