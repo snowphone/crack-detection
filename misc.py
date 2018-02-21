@@ -2,11 +2,11 @@ import re
 import os
 from scipy.misc import imread
 
-grade = ("시작", "초기", "중기", "말기", "최종")
+grade = ("시작", "초기", "중기", "말기", "최종", "기타")
 
 
 def label(nameList):
-	finder = re.compile(r"시작|초기|중기|말기|최종")
+	finder = re.compile(r"시작|초기|중기|말기|최종|기타")
 	ret = []
 	for name in nameList:
 		onehot = [0 for _ in range(len(grade))]
