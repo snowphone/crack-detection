@@ -12,7 +12,7 @@ from time import time
 import numpy as np
 import tensorflow as tf
 
-from misc import label, load, grade, load_file_name 
+from misc import grade, label, load, load_file_name
 
 EPOCH = 100
 LEARNING_RATE = 0.001
@@ -23,9 +23,17 @@ x_images, y_labels = load(path + "train/")
 test_images, test_labels = load(path + "test/")
 
 def main():
-	train()
-	predict()
-	get_accuracy()
+	f = open("result.log", mode="w+")
+	f.writelines("epoch: {}, learning rate: {}".format(EPOCH, LEARNING_RATE))
+	accu_list = []
+	for i in range(10):
+		train()
+		accu = accuracy()
+		accu_list.append(accu)
+		info = "{}th accuracy: {}".format(i+1, accu)
+		print(info)
+		f.writelines(info)
+	f.writelines("10번의 평균 정확도: {}".format(sum(accu_list) / len(accu_list)))
 	return
 
 
@@ -68,14 +76,13 @@ def predict():
 		in zip(file_names, model_idxes, answer_idxes)], sep='\n')
 	return
 
-def get_accuracy():
+def accuracy():
 	is_correct = tf.equal(tf.argmax(model,1), tf.argmax(Y,1))
 	accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
-	print("정확도:", sess.run(accuracy,
-							feed_dict={X: test_images,
-									Y: test_labels,
-									is_training: False}))
-	return
+	return sess.run(accuracy,
+					feed_dict={X: test_images,
+							Y: test_labels,
+							is_training: False})
 
 
 if __name__ == "__main__":
