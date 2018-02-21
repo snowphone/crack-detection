@@ -19,10 +19,12 @@ def label(nameList):
 def load(folderPath):
 	x_imgName = [name for name in os.listdir(
 		folderPath) if name.find("jpg") != -1 or name.find("JPG") != -1]
-	x_images = [imread(folderPath + name) for name in x_imgName]
+	#정규화
+	x_images = [imread(folderPath + name) / 256 for name in x_imgName]
 	y_labels = label(x_imgName)
 	return x_images, y_labels
 
 def load_file_name(folderPath):
 	return [name for name in os.listdir(folderPath) 
 			if name.find("jpg") != -1 or name.find("JPG") != -1]
+
