@@ -23,19 +23,23 @@ x_images, y_labels = load(path + "train/")
 test_images, test_labels = load(path + "test/")
 
 def main():
+	train()
+	predict()
+	print("정확도: {:.3f}%".format(100 * accuracy()))
+	return
+
+def test_algorithm():
 	f = open("result.log", mode="w+")
-	f.writelines("epoch: {}, learning rate: {}".format(EPOCH, LEARNING_RATE))
+	f.write("epoch: {}, learning rate: {}\n".format(EPOCH, LEARNING_RATE))
 	accu_list = []
-	for i in range(10):
+	for i in range(5):
 		train()
 		accu = accuracy()
 		accu_list.append(accu)
-		info = "{}th accuracy: {}".format(i+1, accu)
+		info = "{}th accuracy: {}\n".format(i+1, accu)
 		print(info)
-		f.writelines(info)
-	f.writelines("10번의 평균 정확도: {}".format(sum(accu_list) / len(accu_list)))
-	return
-
+		f.write(info)
+	f.write("5번의 평균 정확도: {}\n".format(sum(accu_list) / len(accu_list)))
 
 
 def CNN_layer(input, filters):
