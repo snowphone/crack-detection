@@ -24,7 +24,8 @@ test_images, test_labels = load(path + "test/")
 
 def main():
 	train()
-	predict()
+	#predict()
+	predict_debug()
 	print("정확도: {:.3f}%".format(100 * accuracy()))
 	return
 
@@ -69,14 +70,25 @@ def train():
 	print("소요시간: {:.1f}초".format(time() - begin))
 	return
 
+def predict_debug():
+	'''예측한 one-hot vector 자체를 반환한다.'''
+	file_names = load_file_name(path + "test/")
+	prediction_list = sess.run(model, 
+			feed_dict={X:test_images, is_training:False})
+	for name, prediction in zip(file_names, prediction_list):
+		idx  = list(prediction).index(max(*prediction))
+		print(name, grade[idx], prediction)
+	
+	return
+
 def predict():
 	'''테스트 데이터 셋에 대해 예측답 및 실제 값을 보여줌.'''
 	file_names = load_file_name(path + "test/")
 	model_idxes = sess.run(tf.argmax(model,1), feed_dict={X:test_images, is_training:False})
 	answer_idxes = sess.run(tf.argmax(Y,1), feed_dict={Y:test_labels}) 
 	print("이미지\t\t예측답\t실제답\t일치여부")
-	print(*[(name, grade[predict], grade[target], predict == target) 
-		for name, predict, target 
+	print(*[(name, grade[prediction], grade[target], prediction == target) 
+		for name, prediction, target 
 		in zip(file_names, model_idxes, answer_idxes)], sep='\n')
 	return
 
